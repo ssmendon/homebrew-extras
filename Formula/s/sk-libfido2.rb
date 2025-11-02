@@ -1,7 +1,16 @@
 class SkLibfido2 < Formula
   desc "FIDO2 provider for SSH"
   homepage "https://www.openssh.com/"
+  url "https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-10.2p1.tar.gz"
+  mirror "https://cloudflare.cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-10.2p1.tar.gz"
+  version "10.2p1"
+  sha256 "ccc42c0419937959263fa1dbd16dafc18c56b984c03562d2937ce56a60f798b2"
   license "SSH-OpenSSH"
+
+  livecheck do
+    url "https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/"
+    regex(/href=.*?openssh[._-]v?(\d+(?:\.\d+)+(?:p\d+)?)\.t/i)
+  end
 
   # TODO: head-only for now; this option isn't stable yet
   head do
@@ -32,7 +41,6 @@ class SkLibfido2 < Formula
 
     args << "--with-privsep-path=#{var}/lib/sshd" if OS.linux?
 
-    system "autoreconf"
     system "./configure", *args, *std_configure_args
 
     # sk-libfido2.dylib doesn't need any extra libs to function
@@ -59,11 +67,13 @@ class SkLibfido2 < Formula
       /* <stdint.h> must be included before
          since this isn't designed as a real library */
       #include <stdint.h>
+      #include <stdio.h>
       #include <sk-api.h>
 
       int main(void) {
         uint32_t vers = sk_api_version();
-        if (vers == SSH_SK_VERSION_MAJOR)
+        if (vers&SSH_SK_VERSION_MAJOR_MASK == SSH_SK_VERSION_MAJOR)
+          printf("%x\n", SSH_SK_VERSION_MAJOR);
           return 0;
         else
           return 1;
